@@ -36,18 +36,7 @@ namespace HNCReport
             using (var con = GetConnection())
             {
                 con.Open();
-                staff = con.QueryFirstOrDefault<RpStaffModel>($@"SELECT
-                                                                	id AS Id,
-                                                                	staff_code AS StaffCode,
-                                                                	staff_name AS StaffName,
-                                                                	position_code AS PositionCode,
-                                                                	leader_code LeaderCode,
-                                                                	created_time AS CreatedTime,
-                                                                	created_user AS CreatedUser,
-                                                                	updated_time AS UpdatedTime,
-                                                                	updated_user AS UpdatedUser 
-                                                                FROM
-                                                                	rp_staff WHERE staff_code = '{user.StaffCode}';");
+                staff = con.QueryFirstOrDefault<RpStaffModel>($@"{RpStaffModel.SQL_SELECT} WHERE staff_code = '{user.StaffCode}';");
             }
 
             return staff;

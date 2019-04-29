@@ -93,42 +93,46 @@ namespace HNCReport.Task
 
                 MessageBox.Show("Done!");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                MessageBox.Show("" + ex);
             }
         }
 
         private RpTaskModel createTask(RpTaskModel task)
         {
-            var sql = @"INSERT INTO `hnc-report`.`rp_task` (
-                                                            	`id`,
-                                                            	`code`,
-                                                            	`name`,
-                                                            	`ref_code`,
-                                                            	`description`,
-                                                            	`is_done`,
-                                                            	`percent`,
-                                                            	`total_hour`,
-                                                            	`asignee_staff_code`,
-                                                            	`asignee_staff_name`,
-                                                            	`created_time`,
-                                                            	`created_user`,
-                                                            	`updated_time`,
-                                                            	`updated_user` 
-                                                            )
-                                                            VALUES
-                                                            	  ( @Id, @Code, @Name, @RefCode, @Description, @IsDone, @Percent, @TotalHour, @AsigneeStaffCode, @AsigneeStaffName, @CreatedTime, @CreatedUser, @UpdatedTime, @UpdatedUser);";
-
-
             RpTaskModel affected = null;
             using (var con = AppContext.GetConnection())
             {
                 con.Open();
-                con.Execute(sql, task);
+                con.Execute(RpTaskModel.SQL_INSERT, task);
             }
 
+            var taskDaily = RpTaskDailyReportModel.ConvertTo(task);
+            taskDaily.Id = IdHelper.NewGuid();
+            taskDaily.Status = RpTaskDailyReportModel.Constant.Status.CREATE;
+            taskDaily.HourPerDay = 0;
+            taskDaily.CompletePercent = 0;
+            taskDaily.ReportDate = DateTime.Now;
+            taskDaily.CreatedTime = DateTime.Now;
+            taskDaily.CreatedUser = AppContext.UserName;
+            taskDaily.UpdatedTime = DateTime.Now;
+            taskDaily.UpdatedUser = AppContext.UserName;
+
+            createTaskDaily(taskDaily);
+
             return affected;
+        }
+
+        private RpTaskDailyReportModel createTaskDaily(RpTaskDailyReportModel task)
+        {
+            using (var con = AppContext.GetConnection())
+            {
+                con.Open();
+                con.Execute(RpTaskDailyReportModel.SQL_INSERT, task);
+            }
+
+            return null;
         }
 
         private void txtTask_Validated(object sender, EventArgs e)

@@ -126,6 +126,7 @@ namespace HNCReport
             new DevExpress.XtraEditors.Controls.EditorButton(DevExpress.XtraEditors.Controls.ButtonPredefines.Combo)});
             this.cboTasks.Size = new System.Drawing.Size(653, 20);
             this.cboTasks.TabIndex = 5;
+            this.cboTasks.EditValueChanged += new System.EventHandler(this.cboTasks_EditValueChanged);
             // 
             // DailyReport
             // 

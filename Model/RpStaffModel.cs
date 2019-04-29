@@ -17,5 +17,18 @@ namespace HNCReport.Model
         public string CreatedUser { get; set; }
         public DateTime UpdatedTime { get; set; }
         public string UpdatedUser { get; set; }
+
+        public const string SQL_SELECT = @"SELECT
+                                            	id AS Id,
+                                            	staff_code AS StaffCode,
+                                            	staff_name AS StaffName,
+                                            	position_code AS PositionCode,
+                                            	leader_code LeaderCode,
+                                            	created_time AS CreatedTime,
+                                            	created_user AS CreatedUser,
+                                            	updated_time AS UpdatedTime,
+                                            	updated_user AS UpdatedUser 
+                                            FROM
+                                            	rp_staff;";
     }
 }
