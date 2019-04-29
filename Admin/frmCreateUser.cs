@@ -10,8 +10,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Dapper;
 using HNCReport.Helper;
+using HNCReport.Security;
 
 namespace HNCReport
 {
@@ -33,9 +33,10 @@ namespace HNCReport
 
                 byte[] passwordHash, passwordSalt;
 
-                CreatePasswordHash(passWord, out passwordHash, out passwordSalt);
-                
-                CreateUser(staffCode, userName, passwordHash, passwordSalt);
+                PasswordExtension.CreatePasswordHash(passWord, out passwordHash, out passwordSalt);
+
+                CreateUser(staffCode, staffName, userName, passwordHash, passwordSalt);
+                MessageBox.Show("Tạo mới thành công!");
             }
             catch (Exception)
             {
@@ -44,38 +45,29 @@ namespace HNCReport
             }
         }
 
-        private void CreateUser(string staffCode, string userName, byte[] passwordHash, byte[] passwordSalt)
+        private void CreateUser(string aStaffCode,
+                                string aStaffName,
+                                string aUserName,
+                                byte[] aPasswordHash,
+                                byte[] aPasswordSalt)
         {
-            //var sql = "INSERT INTO `hnc-report`.`user`(`id`, `staff_code`, `username`, `password_salt`, `password_hash`) VALUES ('{}', '{}', '{}', {}, {});";
+            string sql = @"INSERT INTO `hnc-report`.`user` ( `id`, `staff_code`, `staff_name`, `username`, `password_salt`, `password_hash` )
+                           VALUES
+                           ( @Id, @StaffCode, @StaffName, @UserName, @PasswordSalt, @PasswordHash );";
 
-            string sql = "INSERT INTO `hnc-report`.`user`(`id`, `staff_code`, `username`, `password_salt`, `password_hash`) VALUES (@Id,@StaffCode,@UserName,@PasswordSalt,@PasswordHash);";
             using (var con = AppContext.GetConnection())
             {
                 con.Open();
                 var affectedRows = con.Execute(sql, new User
                 {
                     Id = IdHelper.NewGuid(),
-                    StaffCode = staffCode,
-                    Username = userName,
-                    PasswordHash = passwordHash,
-                    PasswordSalt = passwordSalt
+                    StaffCode = aStaffCode,
+                    StaffName = aStaffName,
+                    Username = aUserName,
+                    PasswordHash = aPasswordHash,
+                    PasswordSalt = aPasswordSalt
                 });
             }
         }
-
-        private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            if (password == null) throw new ArgumentNullException("password");
-            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Value cannot be empty or whitespace only string.", "password");
-
-            using (var hmac = new System.Security.Cryptography.HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-            }
-        }
-
-
-
     }
 }

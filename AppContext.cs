@@ -1,4 +1,6 @@
-﻿using MySql.Data.MySqlClient;
+﻿using Dapper;
+using HNCReport.Model;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,6 +16,43 @@ namespace HNCReport
         public static string UserName { get; set; }
         public static bool IsLogin { get; set; }
 
+        public static User GetUserProfile()
+        {
+            User user = null;
+            using (var con = GetConnection())
+            {
+                con.Open();
+                user = con.QueryFirstOrDefault<User>($@"SELECT staff_code as StaffCode, staff_name as StaffName, username as UserName FROM `user` WHERE username = '{UserName}';");
+            }
+
+            return user;
+        }
+
+        public static RpStaffModel GetStaffProfile()
+        {
+            var user = GetUserProfile();
+
+            RpStaffModel staff = null;
+            using (var con = GetConnection())
+            {
+                con.Open();
+                staff = con.QueryFirstOrDefault<RpStaffModel>($@"SELECT
+                                                                	id AS Id,
+                                                                	staff_code AS StaffCode,
+                                                                	staff_name AS StaffName,
+                                                                	position_code AS PositionCode,
+                                                                	leader_code LeaderCode,
+                                                                	created_time AS CreatedTime,
+                                                                	created_user AS CreatedUser,
+                                                                	updated_time AS UpdatedTime,
+                                                                	updated_user AS UpdatedUser 
+                                                                FROM
+                                                                	rp_staff WHERE staff_code = '{user.StaffCode}';");
+            }
+
+            return staff;
+        }
+
         public static bool ValidateAuthenticated()
         {
             if (!IsLogin)
@@ -27,12 +66,28 @@ namespace HNCReport
 
         public static bool IsLead()
         {
-            return true;
+            var staff = GetStaffProfile();
+            if (staff == null)
+            {
+                return false;
+            }
+
+            return staff.LeaderCode == RpJobPositionModel.LEADER;
         }
 
         public static bool IsStaff()
         {
-            return true;
+            var staff = GetStaffProfile();
+            if (staff == null)
+            {
+                return false;
+            }
+            return staff.LeaderCode == RpJobPositionModel.STAFF;
+        }
+
+        public static bool IsAdmin()
+        {
+            return UserName == "admin";
         }
 
         public static IDbConnection GetConnection()

@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using Dapper;
 using HNCReport.Model;
 using HNCReport.CommonDTO;
+using HNCReport.Helper;
 
 namespace HNCReport
 {
@@ -19,17 +20,19 @@ namespace HNCReport
         public DailyReport()
         {
             InitializeComponent();
-        }
 
-        private List<StringCodeName> getTaskNotCompleteByUsername(string userName)
-        {
+            var user = AppContext.GetUserProfile();
             using (var con = AppContext.GetConnection())
             {
                 con.Open();
-                var rp = con.Query<RpTaskDailyReportModel>("SELECT * FROM rp_task_report_daily");
+                var lstTask = con.Query<RpTaskDailyReportModel>($"SELECT * FROM rp_task_report_daily WHERE asignee_code = {user.StaffCode}") as List<RpTaskDailyReportModel>;
+                if (lstTask.HasItem())
+                {
+                    cboTasks.Properties.DataSource = lstTask;
+                    cboTasks.Properties.DisplayMember = nameof(RpTaskDailyReportModel.Name);
+                    cboTasks.Properties.ValueMember = nameof(RpTaskDailyReportModel.Code);
+                }
             }
-
-            return new List<StringCodeName>();
         }
 
         private void btnUpdate_Click(object sender, EventArgs e)

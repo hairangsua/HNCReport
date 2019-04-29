@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HNCReport.ForLead;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -16,22 +17,16 @@ namespace HNCReport
         {
             InitializeComponent();
 
-            using (var frmLogin = new frmLogin())
+            try
             {
-                frmLogin.OnNotAuthenAndCloseForm = (e) =>
-                {
-                    frmLogin.OnNotAuthenAndCloseForm = null;
-                    Close();
-                };
+                var frmLogin = new frmLogin();
                 frmLogin.ShowDialog();
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show("" + ex);
+            }
 
-
-        }
-
-        private bool ValidateStaff(string user)
-        {
-            return true;
         }
 
         private void btnForLead_Click(object sender, EventArgs e)
@@ -43,11 +38,18 @@ namespace HNCReport
                 {
                     return;
                 }
-            }
-            catch (Exception)
-            {
 
-                throw;
+                if (AppContext.IsStaff())
+                {
+                    return;
+                }
+
+                var frm = new frmForLead();
+                frm.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
 
         }
@@ -61,11 +63,13 @@ namespace HNCReport
                 {
                     return;
                 }
-            }
-            catch (Exception)
-            {
 
-                throw;
+                var frm = new frmForStaff();
+                frm.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("" + ex);
             }
 
         }
@@ -74,13 +78,18 @@ namespace HNCReport
         {
             try
             {
+                if (!AppContext.IsAdmin())
+                {
+                    MessageBox.Show("Ô có fai ass min đâu mà đc sử dụng tính năng này!");
+                    return;
+                }
+
                 var frm = new frmCreateUser();
                 frm.ShowDialog();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                MessageBox.Show("" + ex);
             }
         }
     }

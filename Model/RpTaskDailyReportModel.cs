@@ -11,6 +11,7 @@ namespace HNCReport.Model
         public string Id { get; set; }
         public string Code { get; set; }
         public string Name { get; set; }
+        public string AsigneeCode { get; set; }
         public DateTime ReportDate { get; set; }
         public decimal HourPerDate { get; set; }
         public decimal CompletePercent { get; set; }

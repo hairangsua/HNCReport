@@ -54,10 +54,7 @@ namespace HNCReport
 
                 if (!isAuthenticate)
                 {
-                    if (OnNotAuthenAndCloseForm != null)
-                    {
-                        OnNotAuthenAndCloseForm(e);
-                    }
+                    Application.Exit();
                 }
 
             }

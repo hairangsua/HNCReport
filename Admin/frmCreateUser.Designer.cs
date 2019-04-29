@@ -53,7 +53,7 @@
             // 
             // lbPassWord
             // 
-            this.lbPassWord.Location = new System.Drawing.Point(13, 107);
+            this.lbPassWord.Location = new System.Drawing.Point(11, 97);
             this.lbPassWord.Name = "lbPassWord";
             this.lbPassWord.Size = new System.Drawing.Size(46, 13);
             this.lbPassWord.TabIndex = 0;
@@ -68,26 +68,26 @@
             // 
             // txtPassword
             // 
-            this.txtPassword.Location = new System.Drawing.Point(82, 104);
+            this.txtPassword.Location = new System.Drawing.Point(82, 94);
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.Properties.PasswordChar = '*';
             this.txtPassword.Properties.UseSystemPasswordChar = true;
             this.txtPassword.Size = new System.Drawing.Size(179, 20);
-            this.txtPassword.TabIndex = 1;
+            this.txtPassword.TabIndex = 3;
             // 
             // btnCreate
             // 
-            this.btnCreate.Location = new System.Drawing.Point(186, 130);
+            this.btnCreate.Location = new System.Drawing.Point(186, 120);
             this.btnCreate.Name = "btnCreate";
             this.btnCreate.Size = new System.Drawing.Size(75, 23);
-            this.btnCreate.TabIndex = 3;
+            this.btnCreate.TabIndex = 4;
             this.btnCreate.Text = "Create";
             this.btnCreate.UseVisualStyleBackColor = true;
             this.btnCreate.Click += new System.EventHandler(this.btnCreate_Click);
             // 
             // labelControl1
             // 
-            this.labelControl1.Location = new System.Drawing.Point(11, 51);
+            this.labelControl1.Location = new System.Drawing.Point(11, 42);
             this.labelControl1.Name = "labelControl1";
             this.labelControl1.Size = new System.Drawing.Size(52, 13);
             this.labelControl1.TabIndex = 0;
@@ -95,14 +95,14 @@
             // 
             // txtStaffCode
             // 
-            this.txtStaffCode.Location = new System.Drawing.Point(82, 48);
+            this.txtStaffCode.Location = new System.Drawing.Point(82, 39);
             this.txtStaffCode.Name = "txtStaffCode";
             this.txtStaffCode.Size = new System.Drawing.Size(179, 20);
-            this.txtStaffCode.TabIndex = 0;
+            this.txtStaffCode.TabIndex = 1;
             // 
             // labelControl2
             // 
-            this.labelControl2.Location = new System.Drawing.Point(11, 77);
+            this.labelControl2.Location = new System.Drawing.Point(11, 69);
             this.labelControl2.Name = "labelControl2";
             this.labelControl2.Size = new System.Drawing.Size(54, 13);
             this.labelControl2.TabIndex = 0;
@@ -110,16 +110,16 @@
             // 
             // txtStaffName
             // 
-            this.txtStaffName.Location = new System.Drawing.Point(82, 74);
+            this.txtStaffName.Location = new System.Drawing.Point(82, 66);
             this.txtStaffName.Name = "txtStaffName";
             this.txtStaffName.Size = new System.Drawing.Size(179, 20);
-            this.txtStaffName.TabIndex = 0;
+            this.txtStaffName.TabIndex = 2;
             // 
             // frmCreateUser
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(273, 165);
+            this.ClientSize = new System.Drawing.Size(273, 156);
             this.Controls.Add(this.btnCreate);
             this.Controls.Add(this.txtPassword);
             this.Controls.Add(this.txtStaffName);
