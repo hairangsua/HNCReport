@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Dapper;
+using HNCReport.Model;
+using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -15,6 +18,53 @@ namespace HNCReport
         public frmLogin()
         {
             InitializeComponent();
+        }
+
+        private bool isAuthenticate;
+
+        private bool authenticate(string userName, string password)
+        {
+            return User.Authenticate(userName, password);
+        }
+
+        private void btnLogin_Click(object sender, EventArgs e)
+        {
+            var userName = txtUserName.Text;
+            var password = txtPassword.Text;
+            isAuthenticate = authenticate(userName, password);
+            if (!isAuthenticate)
+            {
+                MessageBox.Show("Sai mật khẩu cmnr!");
+                return;
+            }
+
+            AppContext.UserName = userName;
+            AppContext.IsLogin = true;
+
+            Close();
+        }
+
+        public Action<EventArgs> OnNotAuthenAndCloseForm = null;
+
+        protected override void OnClosed(EventArgs e)
+        {
+            try
+            {
+                base.OnClosed(e);
+
+                if (!isAuthenticate)
+                {
+                    if (OnNotAuthenAndCloseForm != null)
+                    {
+                        OnNotAuthenAndCloseForm(e);
+                    }
+                }
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }
