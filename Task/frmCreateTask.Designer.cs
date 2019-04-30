@@ -41,10 +41,12 @@ namespace HNCReport.Task
             this.cboAssignee = new DevExpress.XtraEditors.LookUpEdit();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.btnCreate = new DevExpress.XtraEditors.SimpleButton();
+            this.rpStaffRepoBindingSource = new System.Windows.Forms.BindingSource(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.txtTask.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtTaskCode.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtTaskName.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cboAssignee.Properties)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.rpStaffRepoBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // labelControl1
@@ -107,6 +109,10 @@ namespace HNCReport.Task
             this.cboAssignee.Name = "cboAssignee";
             this.cboAssignee.Properties.Buttons.AddRange(new DevExpress.XtraEditors.Controls.EditorButton[] {
             new DevExpress.XtraEditors.Controls.EditorButton(DevExpress.XtraEditors.Controls.ButtonPredefines.Combo)});
+            this.cboAssignee.Properties.Columns.AddRange(new DevExpress.XtraEditors.Controls.LookUpColumnInfo[] {
+            new DevExpress.XtraEditors.Controls.LookUpColumnInfo("StaffCode", "Staff Code"),
+            new DevExpress.XtraEditors.Controls.LookUpColumnInfo("StaffName", "Staff Name")});
+            this.cboAssignee.Properties.DataSource = this.rpStaffRepoBindingSource;
             this.cboAssignee.Size = new System.Drawing.Size(695, 20);
             this.cboAssignee.TabIndex = 3;
             // 
@@ -123,6 +129,10 @@ namespace HNCReport.Task
             this.btnCreate.TabIndex = 4;
             this.btnCreate.Text = "Create";
             this.btnCreate.Click += new System.EventHandler(this.btnCreate_Click);
+            // 
+            // rpStaffRepoBindingSource
+            // 
+            this.rpStaffRepoBindingSource.DataSource = typeof(BL.RpStaff.RpStaffRepo);
             // 
             // frmCreateTask
             // 
@@ -144,6 +154,7 @@ namespace HNCReport.Task
             ((System.ComponentModel.ISupportInitialize)(this.txtTaskCode.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtTaskName.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.cboAssignee.Properties)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.rpStaffRepoBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -161,5 +172,6 @@ namespace HNCReport.Task
         private LookUpEdit cboAssignee;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private SimpleButton btnCreate;
+        private System.Windows.Forms.BindingSource rpStaffRepoBindingSource;
     }
 }

@@ -25,11 +25,23 @@ namespace HNCReport.ForLead
                 var frm = new frmCreateTask();
                 frm.ShowDialog();
             }
-            catch (Exception)
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex + "");
+            }
+        }
+
+        private void btnGetReportWeekly_Click(object sender, EventArgs e)
+        {
+            try
             {
 
-                throw;
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex + "");
+            }
+
         }
     }
 }

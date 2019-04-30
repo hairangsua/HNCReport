@@ -50,7 +50,13 @@ namespace HNCReport.Task
                 var name = txtTaskName.Text;
                 var asignee = cboAssignee.EditValue.ToString();
 
-                var exitedTask = _repoTask.SingleOrDefault(x => x.Code == code);
+                if (code.IsEmpty() || name.IsEmpty() || asignee.IsEmpty())
+                {
+                    MessageBox.Show("Điền đầy đủ thông tin đê ô eei!");
+                    return;
+                }
+
+                var exitedTask = _repoTask.FirstOrDefault(x => x.Code == code);
                 if (exitedTask != null)
                 {
                     MessageBox.Show($"Task {exitedTask.Code} đã tồn tại!");
@@ -62,10 +68,7 @@ namespace HNCReport.Task
                     Id = IdHelper.NewGuid(),
                     Code = code,
                     Name = name,
-                    TotalHour = 0,
                     Description = "",
-                    IsDone = false,
-                    Percent = 0,
                     RefCode = "",
                     AsigneeStaffCode = asignee,
                     AsigneeStaffName = cboAssignee.Properties.GetDisplayText(asignee),
@@ -85,7 +88,7 @@ namespace HNCReport.Task
 
         private void createTask(RpTaskModel task)
         {
-            using (var ts = _repoTask.Connection.BeginTransaction())
+            using (var ts = _repoTask.BeginTransaction())
             {
                 try
                 {

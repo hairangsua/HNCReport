@@ -18,6 +18,7 @@ namespace HNCReport
     public partial class DailyReport : frmBase
     {
         private List<RpTaskReportDailyModel> _lstTaskDaily;
+        private List<RpTaskReportDailyModel> _lstAllTaskDaily;
         private RpTaskReportDailyRepo _repoRepostDaily = new RpTaskReportDailyRepo();
 
         public DailyReport()
@@ -27,9 +28,11 @@ namespace HNCReport
             dtReportDate.EditValue = DateTime.Now;
 
             var user = AppContext.GetUserProfile();
+            var staffCode = user.StaffCode;
 
-            var lstAllTask = _repoRepostDaily.Find(x => x.AsigneeCode == user.StaffCode);
-            _lstTaskDaily = getTaskDailyDataSource(lstAllTask);
+            _lstAllTaskDaily = _repoRepostDaily.Find(x => x.AsigneeCode == staffCode);
+
+            _lstTaskDaily = getTaskDailyDataSource(_lstAllTaskDaily);
             if (_lstTaskDaily.HasItem())
             {
                 cboTasks.Properties.DataSource = _lstTaskDaily;
@@ -63,35 +66,21 @@ namespace HNCReport
         {
             try
             {
-                decimal percent = decimal.Parse(txtCompletePercent.EditValue.ToString());
-                var hourPerDay = decimal.Parse(txtHours.EditValue.ToString());
-
-                if (percent < 0 || percent > 100)
+                if (_lstCreate.IsNullOrEmpty())
                 {
-                    MessageBox.Show("Phần % chỉ nằm trong khoảng 0 - 100%");
+                    MessageBox.Show("Làm gì có gì mà update!");
                     return;
                 }
 
-                if (hourPerDay < 0 || hourPerDay > 8)
+                DialogResult result = MessageBox.Show("Do you want to save changes?", "Confirmation", MessageBoxButtons.YesNoCancel);
+                if (result != DialogResult.Yes)
                 {
-                    MessageBox.Show("Số giờ chỉ nằm trong khoảng 0 - 8");
                     return;
                 }
 
-                _Task.Id = IdHelper.NewGuid();
-                _Task.HourPerDay = hourPerDay;
-                _Task.CompletePercent = percent;
-                _Task.ReportDate = dtReportDate.DateTime;
+                _repoRepostDaily.BulkInsert(_lstCreate);
 
-                _Task.Status = percent == 100 ? RpTaskReportDailyModel.Constant.Status.DONE : RpTaskReportDailyModel.Constant.Status.PROCESSING;
-
-                _Task.CreatedTime = DateTime.Now;
-                _Task.UpdatedTime = DateTime.Now;
-                _Task.CreatedUser = AppContext.UserName;
-                _Task.UpdatedUser = AppContext.UserName;
-
-                updateTask(_Task);
-
+                MessageBox.Show("Done!");
             }
             catch (Exception ex)
             {
@@ -99,44 +88,118 @@ namespace HNCReport
             }
         }
 
-        private void updateTask(RpTaskReportDailyModel reportTask)
-        {
-            //using (var con = AppContext.GetConnection())
-            //{
-            //    con.Open();
-            //    con.Execute(RpTaskReportDailyModel.SQL_INSERT, reportTask);
-
-            //    var originTask = con.QueryFirstOrDefault<RpTaskModel>($@"{RpTaskModel.SQL_SELECT} WHERE id = '{reportTask.TaskId}'");
-
-            //    if (originTask == null)
-            //    {
-            //        MessageBox.Show($"Không tìm thấy task {reportTask.Code} với Id {reportTask.TaskId}");
-            //        return;
-            //    }
-
-            //    if (originTask.Percent == 100)
-            //    {
-            //        MessageBox.Show($"Task đã xong nên không thể update!");
-            //        return;
-            //    }
-
-            //    var taskSql = $@"UPDATE rp_task SET percent = '{reportTask.CompletePercent}', total_hour = '{originTask.TotalHour + reportTask.HourPerDay}'  WHERE id = '{originTask.Id}' ";
-            //    con.Execute(taskSql);
-            //}
-        }
-
-        private RpTaskReportDailyModel _Task = null;
+        private RpTaskReportDailyModel _selecetedTask = null;
         private void cboTasks_EditValueChanged(object sender, EventArgs e)
         {
             try
             {
                 var taskCode = cboTasks.EditValue.ToString();
-                _Task = _lstTaskDaily.FirstOrDefault(x => x.Code == taskCode);
-                if (_Task != null)
+                _selecetedTask = _lstTaskDaily.FirstOrDefault(x => x.Code == taskCode);
+                if (_selecetedTask != null)
                 {
-                    txtCompletePercent.EditValue = _Task.CompletePercent;
-                    txtHours.EditValue = _Task.HourPerDay;
+                    txtCompletePercent.EditValue = _selecetedTask.CompletePercent;
+                    txtHours.EditValue = _selecetedTask.HourPerDay;
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("" + ex);
+            }
+        }
+
+        private List<RpTaskReportDailyModel> _lstCreate;
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_lstCreate.IsNullOrEmpty())
+                {
+                    _lstCreate = new List<RpTaskReportDailyModel>();
+                }
+
+                decimal percent = decimal.Parse(txtCompletePercent.EditValue.ToString());
+
+                if (percent == 0)
+                {
+                    MessageBox.Show("0% kìa. Không làm thì thôi k cần báo cáo đâu!");
+                    return;
+                }
+
+                var hourPerDay = decimal.Parse(txtHours.EditValue.ToString());
+
+                if (_lstCreate.HasItem())
+                {
+                    var isExist = _lstCreate.Any(x => x.Code == _selecetedTask.Code);
+                    if (isExist)
+                    {
+                        MessageBox.Show("Đã tồn tại task trong list định báo cáo!");
+                        return;
+                    }
+                }
+
+                var objExistByDate = _lstAllTaskDaily.FirstOrDefault(x => x.Code == _selecetedTask.Code && x.ReportDate == dtReportDate.DateTime.Date && x.Status != RpTaskReportDailyModel.Constant.Status.CREATE);
+                if (objExistByDate != null)
+                {
+                    MessageBox.Show($"Task {objExistByDate.FullName} này đã báo cáo ngày {objExistByDate.ReportDate.ToString("dd/MM/yyyy")}");
+                    return;
+                }
+
+                if (percent < 0 || percent > 100)
+                {
+                    MessageBox.Show("Phần % chỉ nằm trong khoảng 0 - 100%");
+                    return;
+                }
+
+                if (hourPerDay <= 0 || hourPerDay > 8)
+                {
+                    MessageBox.Show("Số giờ chỉ nằm trong khoảng lớn hơn 0 nhỏ hơn 8");
+                    return;
+                }
+
+                var originTask = _repoRepostDaily.FirstOrDefault(x => x.Id == _selecetedTask.Id);
+
+                if (originTask == null)
+                {
+                    MessageBox.Show($"Không tìm thấy task {_selecetedTask.Code} với Id {_selecetedTask.TaskId}");
+                    return;
+                }
+
+                if (originTask.CompletePercent == 100)
+                {
+                    MessageBox.Show($"Task đã xong nên không thể update!");
+                    return;
+                }
+
+                if (originTask.ReportDate.Date > dtReportDate.DateTime.Date)
+                {
+                    MessageBox.Show($"Ngày báo cáo không thể nhỏ hơn ngày báo cáo trước!");
+                    return;
+                }
+
+                if (percent < originTask.CompletePercent)
+                {
+                    MessageBox.Show($"% đang nhỏ hơn % hôm trước!");
+                    return;
+                }
+
+                _selecetedTask.Id = IdHelper.NewGuid();
+                _selecetedTask.HourPerDay = hourPerDay;
+                _selecetedTask.CompletePercent = percent;
+                _selecetedTask.ReportDate = dtReportDate.DateTime;
+                _selecetedTask.LastReportId = originTask.Id;
+
+                _selecetedTask.Status = percent == 100 ? RpTaskReportDailyModel.Constant.Status.DONE : RpTaskReportDailyModel.Constant.Status.PROCESSING;
+
+                _selecetedTask.CreatedTime = DateTime.Now;
+                _selecetedTask.UpdatedTime = DateTime.Now;
+                _selecetedTask.CreatedUser = AppContext.UserName;
+                _selecetedTask.UpdatedUser = AppContext.UserName;
+
+                _lstCreate.Add(_selecetedTask);
+
+                gridView.DataSource = _lstCreate;
+                gridView.RefreshDataSource();
             }
             catch (Exception ex)
             {

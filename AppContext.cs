@@ -12,14 +12,15 @@ namespace HNCReport
 
         public static RpUserModel GetUserProfile()
         {
-            return new RpUserRepo().SingleOrDefault(x => x.Username == UserName);
+            string userName = UserName;
+            return new RpUserRepo().FirstOrDefault(x => x.Username == userName);
         }
 
         public static RpStaffModel GetStaffProfile()
         {
             var user = GetUserProfile();
 
-            return new RpStaffRepo().SingleOrDefault(x => x.StaffCode == user.StaffCode);
+            return new RpStaffRepo().FirstOrDefault(x => x.StaffCode == user.StaffCode);
         }
 
         public static bool ValidateAuthenticated()
