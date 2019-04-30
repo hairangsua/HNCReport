@@ -1,12 +1,6 @@
-﻿using Dapper;
-using HNCReport.Model;
-using MySql.Data.MySqlClient;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BL.RpJobPosition;
+using BL.RpStaff;
+using BL.RpUser;
 using System.Windows.Forms;
 
 namespace HNCReport
@@ -16,30 +10,16 @@ namespace HNCReport
         public static string UserName { get; set; }
         public static bool IsLogin { get; set; }
 
-        public static User GetUserProfile()
+        public static RpUserModel GetUserProfile()
         {
-            User user = null;
-            using (var con = GetConnection())
-            {
-                con.Open();
-                user = con.QueryFirstOrDefault<User>($@"SELECT staff_code as StaffCode, staff_name as StaffName, username as UserName FROM `user` WHERE username = '{UserName}';");
-            }
-
-            return user;
+            return new RpUserRepo().SingleOrDefault(x => x.Username == UserName);
         }
 
         public static RpStaffModel GetStaffProfile()
         {
             var user = GetUserProfile();
 
-            RpStaffModel staff = null;
-            using (var con = GetConnection())
-            {
-                con.Open();
-                staff = con.QueryFirstOrDefault<RpStaffModel>($@"{RpStaffModel.SQL_SELECT} WHERE staff_code = '{user.StaffCode}';");
-            }
-
-            return staff;
+            return new RpStaffRepo().SingleOrDefault(x => x.StaffCode == user.StaffCode);
         }
 
         public static bool ValidateAuthenticated()
@@ -61,7 +41,7 @@ namespace HNCReport
                 return false;
             }
 
-            return staff.LeaderCode == RpJobPositionModel.LEADER;
+            return staff.LeaderCode == RpJobPositionModel.Constant.LEADER;
         }
 
         public static bool IsStaff()
@@ -71,19 +51,12 @@ namespace HNCReport
             {
                 return false;
             }
-            return staff.LeaderCode == RpJobPositionModel.STAFF;
+            return staff.LeaderCode == RpJobPositionModel.Constant.STAFF;
         }
 
         public static bool IsAdmin()
         {
             return UserName == "admin";
         }
-
-        public static IDbConnection GetConnection()
-        {
-            return new MySqlConnection(ConnectionString);
-        }
-
-        public static readonly string ConnectionString = @"Persist Security Info=True;Data Source=35.236.185.220;Port=3306;Initial Catalog=hnc-report;User ID=root;Password=nghia1996;charset=utf8;Pooling=true;";
     }
 }

@@ -1,6 +1,8 @@
-﻿using Dapper;
-using HNCReport.Helper;
-using HNCReport.Model;
+﻿using BL.RpStaff;
+using BL.RpTask;
+using BL.RpTaskReportDaily;
+using Dapper;
+using Kinta.Framework.Helper;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,41 +17,28 @@ namespace HNCReport.Task
 {
     public partial class frmCreateTask : frmBase
     {
+        private RpStaffRepo _repoStaff = new RpStaffRepo();
+        private RpTaskRepo _repoTask = new RpTaskRepo();
+        private RpTaskReportDailyRepo _repoDailyReport = new RpTaskReportDailyRepo();
+
         public frmCreateTask()
         {
             InitializeComponent();
 
             var user = AppContext.GetUserProfile();
 
-            var sql = $@"SELECT
-                        	id AS Id,
-                        	staff_code AS StaffCode,
-                        	staff_name AS StaffName,
-                        	position_code AS PositionCode,
-                        	leader_code AS LeaderCode,
-                        	created_time AS CreatedTime,
-                        	created_user AS CreatedUser,
-                            updated_time AS UpdatedTime,
-                        	updated_user AS UpdatedUser 
-                        FROM
-                        	rp_staff 
-                        WHERE
-                        	leader_code = '{user.StaffCode}' OR staff_code = '{user.StaffCode}'";
-
             if (user != null)
             {
-                using (var con = AppContext.GetConnection())
+                var lstStaff = _repoStaff.Find(x => x.LeaderCode == user.StaffCode || x.StaffCode == user.StaffCode);
+
+                if (lstStaff.HasItem())
                 {
-                    con.Open();
-                    var lstStaff = con.Query<RpStaffModel>(sql) as List<RpStaffModel>;
-                    if (lstStaff.HasItem())
-                    {
-                        cboAssignee.Properties.DataSource = lstStaff;
-                        cboAssignee.Properties.DisplayMember = nameof(RpStaffModel.StaffName);
-                        cboAssignee.Properties.ValueMember = nameof(RpStaffModel.StaffCode);
-                    }
+                    cboAssignee.Properties.DataSource = lstStaff;
+                    cboAssignee.Properties.DisplayMember = nameof(RpStaffModel.StaffName);
+                    cboAssignee.Properties.ValueMember = nameof(RpStaffModel.StaffCode);
                 }
             }
+
 
         }
 
@@ -61,16 +50,11 @@ namespace HNCReport.Task
                 var name = txtTaskName.Text;
                 var asignee = cboAssignee.EditValue.ToString();
 
-                string sql = $@"SELECT * FROM rp_task WHERE code = {code};";
-
-                using (var con = AppContext.GetConnection())
+                var exitedTask = _repoTask.SingleOrDefault(x => x.Code == code);
+                if (exitedTask != null)
                 {
-                    var exitedTask = con.QueryFirstOrDefault<RpTaskModel>(sql);
-                    if (exitedTask != null)
-                    {
-                        MessageBox.Show($"Task {exitedTask.Code} đã tồn tại!");
-                        return;
-                    }
+                    MessageBox.Show($"Task {exitedTask.Code} đã tồn tại!");
+                    return;
                 }
 
                 createTask(new RpTaskModel
@@ -99,41 +83,37 @@ namespace HNCReport.Task
             }
         }
 
-        private RpTaskModel createTask(RpTaskModel task)
+        private void createTask(RpTaskModel task)
         {
-            RpTaskModel affected = null;
-            using (var con = AppContext.GetConnection())
+            using (var ts = _repoTask.Connection.BeginTransaction())
             {
-                con.Open();
-                con.Execute(RpTaskModel.SQL_INSERT, task);
+                try
+                {
+                    _repoTask.Insert(task, ts);
+
+                    var taskDaily = RpTaskReportDailyModel.ConvertTo(task);
+                    taskDaily.Id = IdHelper.NewGuid();
+                    taskDaily.Status = RpTaskReportDailyModel.Constant.Status.CREATE;
+                    taskDaily.HourPerDay = 0;
+                    taskDaily.CompletePercent = 0;
+                    taskDaily.ReportDate = DateTime.Now;
+                    taskDaily.CreatedTime = DateTime.Now;
+                    taskDaily.CreatedUser = AppContext.UserName;
+                    taskDaily.UpdatedTime = DateTime.Now;
+                    taskDaily.UpdatedUser = AppContext.UserName;
+
+                    _repoDailyReport.Insert(taskDaily, ts);
+                    ts.Commit();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("" + ex);
+                    ts.Rollback();
+                }
             }
-
-            var taskDaily = RpTaskDailyReportModel.ConvertTo(task);
-            taskDaily.Id = IdHelper.NewGuid();
-            taskDaily.Status = RpTaskDailyReportModel.Constant.Status.CREATE;
-            taskDaily.HourPerDay = 0;
-            taskDaily.CompletePercent = 0;
-            taskDaily.ReportDate = DateTime.Now;
-            taskDaily.CreatedTime = DateTime.Now;
-            taskDaily.CreatedUser = AppContext.UserName;
-            taskDaily.UpdatedTime = DateTime.Now;
-            taskDaily.UpdatedUser = AppContext.UserName;
-
-            createTaskDaily(taskDaily);
-
-            return affected;
         }
 
-        private RpTaskDailyReportModel createTaskDaily(RpTaskDailyReportModel task)
-        {
-            using (var con = AppContext.GetConnection())
-            {
-                con.Open();
-                con.Execute(RpTaskDailyReportModel.SQL_INSERT, task);
-            }
 
-            return null;
-        }
 
         private void txtTask_Validated(object sender, EventArgs e)
         {

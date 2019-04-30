@@ -1,5 +1,5 @@
-﻿using Dapper;
-using HNCReport.Model;
+﻿using BL.RpUser;
+using Dapper;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -24,7 +24,8 @@ namespace HNCReport
 
         private bool authenticate(string userName, string password)
         {
-            return User.Authenticate(userName, password);
+            var bl = new RpUserBL();
+            return bl.Authenticate(userName, password);
         }
 
         private void btnLogin_Click(object sender, EventArgs e)

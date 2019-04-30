@@ -9,15 +9,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Dapper;
-using HNCReport.Model;
-using HNCReport.CommonDTO;
-using HNCReport.Helper;
+using BL.RpTaskReportDaily;
+using Kinta.Framework.Helper;
+using BL.RpTask;
 
 namespace HNCReport
 {
     public partial class DailyReport : frmBase
     {
-        private List<RpTaskDailyReportModel> _lstTaskDaily;
+        private List<RpTaskReportDailyModel> _lstTaskDaily;
+        private RpTaskReportDailyRepo _repoRepostDaily = new RpTaskReportDailyRepo();
 
         public DailyReport()
         {
@@ -26,27 +27,24 @@ namespace HNCReport
             dtReportDate.EditValue = DateTime.Now;
 
             var user = AppContext.GetUserProfile();
-            using (var con = AppContext.GetConnection())
+
+            var lstAllTask = _repoRepostDaily.Find(x => x.AsigneeCode == user.StaffCode);
+            _lstTaskDaily = getTaskDailyDataSource(lstAllTask);
+            if (_lstTaskDaily.HasItem())
             {
-                con.Open();
-                var lstAllTask = con.Query<RpTaskDailyReportModel>($@"{RpTaskDailyReportModel.SQL_SELECT} WHERE asignee_code = '{user.StaffCode}';") as List<RpTaskDailyReportModel>;
-                _lstTaskDaily = getTaskDailyDataSource(lstAllTask);
-                if (_lstTaskDaily.HasItem())
-                {
-                    cboTasks.Properties.DataSource = _lstTaskDaily;
-                    cboTasks.Properties.DisplayMember = nameof(RpTaskDailyReportModel.FullName);
-                    cboTasks.Properties.ValueMember = nameof(RpTaskDailyReportModel.Code);
-                }
+                cboTasks.Properties.DataSource = _lstTaskDaily;
+                cboTasks.Properties.DisplayMember = nameof(RpTaskReportDailyModel.FullName);
+                cboTasks.Properties.ValueMember = nameof(RpTaskReportDailyModel.Code);
             }
         }
 
-        private List<RpTaskDailyReportModel> getTaskDailyDataSource(List<RpTaskDailyReportModel> lstAllTask)
+        private List<RpTaskReportDailyModel> getTaskDailyDataSource(List<RpTaskReportDailyModel> lstAllTask)
         {
-            var rs = new List<RpTaskDailyReportModel>();
+            var rs = new List<RpTaskReportDailyModel>();
 
-            var lstDone = lstAllTask.Where(x => x.Status == RpTaskDailyReportModel.Constant.Status.DONE).Select(x => x.Code).Distinct().ToList();
+            var lstDone = lstAllTask.Where(x => x.Status == RpTaskReportDailyModel.Constant.Status.DONE).Select(x => x.Code).Distinct().ToList();
 
-            var lstCode = lstAllTask.Where(x => x.Status != RpTaskDailyReportModel.Constant.Status.DONE && !lstDone.Contains(x.Code)).Select(x => x.Code).Distinct().ToList();
+            var lstCode = lstAllTask.Where(x => x.Status != RpTaskReportDailyModel.Constant.Status.DONE && !lstDone.Contains(x.Code)).Select(x => x.Code).Distinct().ToList();
             if (lstCode.IsNullOrEmpty())
             {
                 return rs;
@@ -85,7 +83,7 @@ namespace HNCReport
                 _Task.CompletePercent = percent;
                 _Task.ReportDate = dtReportDate.DateTime;
 
-                _Task.Status = percent == 100 ? RpTaskDailyReportModel.Constant.Status.DONE : RpTaskDailyReportModel.Constant.Status.PROCESSING;
+                _Task.Status = percent == 100 ? RpTaskReportDailyModel.Constant.Status.DONE : RpTaskReportDailyModel.Constant.Status.PROCESSING;
 
                 _Task.CreatedTime = DateTime.Now;
                 _Task.UpdatedTime = DateTime.Now;
@@ -101,33 +99,33 @@ namespace HNCReport
             }
         }
 
-        private void updateTask(RpTaskDailyReportModel reportTask)
+        private void updateTask(RpTaskReportDailyModel reportTask)
         {
-            using (var con = AppContext.GetConnection())
-            {
-                con.Open();
-                con.Execute(RpTaskDailyReportModel.SQL_INSERT, reportTask);
+            //using (var con = AppContext.GetConnection())
+            //{
+            //    con.Open();
+            //    con.Execute(RpTaskReportDailyModel.SQL_INSERT, reportTask);
 
-                var originTask = con.QueryFirstOrDefault<RpTaskModel>($@"{RpTaskModel.SQL_SELECT} WHERE id = '{reportTask.TaskId}'");
+            //    var originTask = con.QueryFirstOrDefault<RpTaskModel>($@"{RpTaskModel.SQL_SELECT} WHERE id = '{reportTask.TaskId}'");
 
-                if (originTask == null)
-                {
-                    MessageBox.Show($"Không tìm thấy task {reportTask.Code} với Id {reportTask.TaskId}");
-                    return;
-                }
+            //    if (originTask == null)
+            //    {
+            //        MessageBox.Show($"Không tìm thấy task {reportTask.Code} với Id {reportTask.TaskId}");
+            //        return;
+            //    }
 
-                if (originTask.Percent == 100)
-                {
-                    MessageBox.Show($"Task đã xong nên không thể update!");
-                    return;
-                }
+            //    if (originTask.Percent == 100)
+            //    {
+            //        MessageBox.Show($"Task đã xong nên không thể update!");
+            //        return;
+            //    }
 
-                var taskSql = $@"UPDATE rp_task SET percent = '{reportTask.CompletePercent}', total_hour = '{originTask.TotalHour + reportTask.HourPerDay}'  WHERE id = '{originTask.Id}' ";
-                con.Execute(taskSql);
-            }
+            //    var taskSql = $@"UPDATE rp_task SET percent = '{reportTask.CompletePercent}', total_hour = '{originTask.TotalHour + reportTask.HourPerDay}'  WHERE id = '{originTask.Id}' ";
+            //    con.Execute(taskSql);
+            //}
         }
 
-        private RpTaskDailyReportModel _Task = null;
+        private RpTaskReportDailyModel _Task = null;
         private void cboTasks_EditValueChanged(object sender, EventArgs e)
         {
             try
