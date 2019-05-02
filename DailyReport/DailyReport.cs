@@ -20,6 +20,8 @@ namespace HNCReport
         private List<RpTaskReportDailyModel> _lstTaskDaily;
         private List<RpTaskReportDailyModel> _lstAllTaskDaily;
         private RpTaskReportDailyRepo _repoRepostDaily = new RpTaskReportDailyRepo();
+        private RpTaskReportDailyModel _selecetedTask = null;
+        private List<RpTaskReportDailyModel> _lstCreate;
 
         public DailyReport()
         {
@@ -88,7 +90,6 @@ namespace HNCReport
             }
         }
 
-        private RpTaskReportDailyModel _selecetedTask = null;
         private void cboTasks_EditValueChanged(object sender, EventArgs e)
         {
             try
@@ -106,8 +107,6 @@ namespace HNCReport
                 MessageBox.Show("" + ex);
             }
         }
-
-        private List<RpTaskReportDailyModel> _lstCreate;
 
         private void btnAdd_Click(object sender, EventArgs e)
         {

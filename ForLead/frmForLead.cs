@@ -1,4 +1,9 @@
-﻿using HNCReport.Task;
+﻿using BL.RpStaff;
+using BL.RpTaskReportDaily;
+using BL.RpTaskReportDaily.XtraReportModel;
+using DevExpress.XtraPrinting.Preview;
+using HNCReport.Report;
+using HNCReport.Task;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,6 +18,7 @@ namespace HNCReport.ForLead
 {
     public partial class frmForLead : frmBase
     {
+         
         public frmForLead()
         {
             InitializeComponent();
@@ -35,7 +41,8 @@ namespace HNCReport.ForLead
         {
             try
             {
-
+                var frm = new frmGetWeeklyReport();
+                frm.ShowDialog();
             }
             catch (Exception ex)
             {
